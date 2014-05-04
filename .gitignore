@@ -1,23 +1,6 @@
-# Object files
+#Obj
 *.o
-*.ko
-*.obj
-*.elf
+libiniparser.a
 
-# Libraries
-*.lib
-*.a
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
+#Target
+inotify_mod
