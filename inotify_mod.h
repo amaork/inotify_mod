@@ -2,7 +2,13 @@
 #define	_INOTIFY_MOD_H_
 
 /* XXX:Included */
+#include <errno.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include <sys/inotify.h>
+#include "debug.h"
 #include "iniparser/iniparser.h"
+
 
 /* XXX:Macro */
 #define DEF_ASCII	1	
@@ -64,20 +70,6 @@ typedef	struct{
 }MSG_INFO, *P_MSG_INFO;
 
 
-/* XXX:Function declare  */
+extern char *conf_file_path;	
 
-/* Read communication params form configure file and init socket */
-static int comm_init(dictionary *conf, P_COMM_INFO comm);
-
-/* Read and parser configure file, cache the configure args to WATCH_INFO */
-static int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size);
-
-/* Init a inotify instance, and add the file to the inotify instance */
-static int watch_init(P_WATCH_INFO watch_list, unsigned int size);
-
-/* Send events message */
-static int send_msg(P_COMM_INFO, P_MSG_INFO);
-
-/* Print help message */
-static void print_help(int argc, char **argv);
 #endif

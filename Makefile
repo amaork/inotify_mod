@@ -1,9 +1,9 @@
-CC		=	gcc
-CPP		=	g++
-CFLAGS	=	-g
-AR	    = ar
-ARFLAGS = rcv
-LDFLAGS = -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib -L. -liniparser -L./socket -lcsocket
+CC			=	gcc
+CPP			=	g++
+CPPFLAGS	=	-W -Wall -g
+AR	    	= 	ar
+ARFLAGS 	= 	rcv
+LDFLAGS 	= 	-Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib -L. -liniparser -L./socket -lcsocket
 
 TARGETS	=	libiniparser.a inotify_mod
 
@@ -18,14 +18,20 @@ OBJS = $(SRCS:.c=.o)
 all:$(TARGETS)
 
 clean:
-	rm *.o *~ $(TARGETS) $(OBJS)	-f
+	rm *.o *~ $(TARGETS) $(OBJS) depend	-f
 
 distclean:
 	rm *.o	$(TARGETS) $(OBJS) libiniparser.a libiniparser.so* -f
 
+depend:$(wildcard *.c *.h)
+	$(CC) $(CPPFLAGS) -MM $^ > $@
 
 libiniparser.a:	$(OBJS)
 	@($(AR) $(ARFLAGS) libiniparser.a $(OBJS))
 
-inotify_mod		:	inotify_mod.o
-	$(CPP) $(CFLAGS)	-o $@ $^ $(LDFLAGS) 
+inotify_mod:
+	$(CPP) $(CPPFLAGS)	-o $@ $^ $(LDFLAGS) 
+
+inotify_mod: inotify_mod.o comm.o configure.o watch.o help.o 
+
+-include depend

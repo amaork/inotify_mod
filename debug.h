@@ -25,5 +25,7 @@
 
 #endif
 
+extern volatile unsigned int debug;
+
 #endif
 

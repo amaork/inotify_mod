@@ -1,6 +1,9 @@
-#Obj
+# Obj
 *.o
 libiniparser.a
 
-#Target
+# Depend
+depend
+
+# Target
 inotify_mod
