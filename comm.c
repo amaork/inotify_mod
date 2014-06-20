@@ -1,12 +1,19 @@
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
+
 #include "comm.h"
 #include "socket/socket_cwrap.h"
+
+static COMM_INFO comm_info;
 
 /*************************************************************************************************************
 **	@brief	:	Comunication init creat socket 
 **	#conf	:	configure file dictionary
 **	@return	:	success return 0, failed return -1
 *************************************************************************************************************/
-int comm_init(dictionary *conf, P_COMM_INFO comm)
+int comm_init(dictionary *conf)
 {
 	char *addr;
 	char port_str[8];
@@ -14,14 +21,14 @@ int comm_init(dictionary *conf, P_COMM_INFO comm)
 
 
 	/* Load comm configure */
-	port	= 	iniparser_getint(conf, ":port", DEF_PORT);
-	addr	=	iniparser_getstring(conf, ":addr", DEF_ADDR);
-	comm->is_ascii = iniparser_getboolean(conf, ":ascii", DEF_ASCII);
+	port				= 	iniparser_getint(conf, ":port", DEF_PORT);
+	addr				=	iniparser_getstring(conf, ":addr", DEF_ADDR);
+	comm_info.is_ascii 	= 	iniparser_getboolean(conf, ":ascii", DEF_ASCII);
 
 	/* Debug */
 	if (debug){
 	
-		fprintf(stderr, "Comm args:\n%s:%hd Ascii:%s\n", addr, port, comm->is_ascii ? "yes" : "no");
+		fprintf(stderr, "Comm args:\n%s:%hd Ascii:%s\n", addr, port, comm_info.is_ascii ? "yes" : "no");
 	}
 
 	/* Check address if it was a broadcast addr or multicast addr */
@@ -51,14 +58,14 @@ int comm_init(dictionary *conf, P_COMM_INFO comm)
 	bzero(port_str, sizeof(port_str));
 	snprintf(port_str, sizeof(port_str), "%hd", port);
 
-	if (nw_get_sockaddr(&comm->addr, addr, port_str)){
+	if (nw_get_sockaddr(&comm_info.addr, addr, port_str)){
 
 		fprintf(stdout, "Get sockaddr error!\n");
 		return -2;
 	}
 
 	/* Socket fd */
-	comm->socket = nw_get_socket();
+	comm_info.socket = nw_get_socket();
 
 	
 	return 0;
@@ -66,11 +73,10 @@ int comm_init(dictionary *conf, P_COMM_INFO comm)
 
 /*************************************************************************************************************
 **	@brief	:	send events message
-**	#comm	:	communication data structure
 **	#msg  	:	will sending event message
 **	@return	:	success return 0, else return -1
 *************************************************************************************************************/
-int comm_send_msg(P_COMM_INFO comm, P_MSG_INFO msg)
+int comm_send_msg(P_MSG_INFO msg)
 {
 	int len;
 	char msg_buf[128];
@@ -93,8 +99,8 @@ int comm_send_msg(P_COMM_INFO comm, P_MSG_INFO msg)
 	}
 
 	/* Format ascii message */	
-	snprintf(msg_buf, sizeof(msg_buf), "%d:%s:%s:%d%d%d%d%d%d%d%d:%s\r\n", \
-			msg->idx, msg->name, event_name, msg->spc[0], msg->spc[1], msg->spc[2], msg->spc[3], msg->spc[4], msg->spc[5], msg->spc[6], msg->spc[7],  msg->path);	
+	snprintf(msg_buf, sizeof(msg_buf), "%d:%s:%s:%d%d%d%d%d%d%d%d:%s:%d\r\n", \
+			msg->idx, msg->name, event_name, msg->spc[0], msg->spc[1], msg->spc[2], msg->spc[3], msg->spc[4], msg->spc[5], msg->spc[6], msg->spc[7],  msg->path, msg->is_dir);	
 
 	/* Debug */
 	if (debug){
@@ -103,12 +109,12 @@ int comm_send_msg(P_COMM_INFO comm, P_MSG_INFO msg)
 
 
 	/* XXX:Ascii format */
-	if (comm->is_ascii){
+	if (comm_info.is_ascii){
 
 		/* Send message to target */
 		len = strlen(msg_buf);
 
-		if (sendto(comm->socket, msg_buf, len, 0, (struct sockaddr*)&comm->addr, sizeof(comm->addr)) != len){
+		if (sendto(comm_info.socket, msg_buf, len, 0, (struct sockaddr*)&comm_info.addr, sizeof(comm_info.addr)) != len){
 
 			perror("Sendto ascii:");
 			return -1;
@@ -124,7 +130,7 @@ int comm_send_msg(P_COMM_INFO comm, P_MSG_INFO msg)
 
 	len = sizeof(MSG_INFO); 
 
-	if (sendto(comm->socket, msg, len, 0, (struct sockaddr*)&comm->addr, sizeof(comm->addr)) != len){
+	if (sendto(comm_info.socket, msg, len, 0, (struct sockaddr*)&comm_info.addr, sizeof(comm_info.addr)) != len){
 
 		perror("Sendto binary:");
 		return -1;
@@ -134,4 +140,40 @@ int comm_send_msg(P_COMM_INFO comm, P_MSG_INFO msg)
 	return 0;
 }
 
+/*************************************************************************************************************
+**	@brief	:	set MSG_INFO field
+*************************************************************************************************************/
+inline void comm_set_msg_name(P_MSG_INFO msg, char *name)
+{
+	bzero(msg->name, sizeof(msg->name));
+	bcopy(name, msg->name, strlen(name));	
+}
+
+inline void comm_set_msg_path(P_MSG_INFO msg, char *path)
+{
+	bzero(msg->path, sizeof(msg->path));
+	bcopy(path, msg->path, strlen(path));
+}
+
+inline void comm_set_msg_dir(P_MSG_INFO msg, char *path, char *name)
+{
+	struct stat st;
+	char full_path[256];
+	bzero(full_path, sizeof(full_path));
+
+	/* Get full path */
+	snprintf(full_path, sizeof(full_path), "%s/%s", path, name);
+
+	/* Clear is_dir flag */
+	msg->is_dir = 0;
+
+	/* Get file stat */
+	if (stat(full_path, &st)){
+
+		return;
+	}
+
+	/* Check if it's an dir */
+	msg->is_dir = S_ISDIR(st.st_mode);	
+}
 

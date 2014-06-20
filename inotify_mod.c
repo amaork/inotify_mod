@@ -27,20 +27,14 @@ char *conf_file_path =	DEF_CONF_FILE;
 int main(int argc, char **argv)
 {
 	int i, j;
-	char *tmp;
+	MSG_INFO msg;
 	int watch_num;
 	int inotify_watch;
 	dictionary	*conf;
+	char events_buf[0x4000];
 	P_WATCH_INFO watch_list;
-
 	ssize_t r_size, offset;
 	struct inotify_event *event;
-
-	char events_buf[0x4000];
-
-	MSG_INFO msg;
-	COMM_INFO comm;
-
 
 	/* XXX:Debug and help options */
 	if (argc >= 2 && argv[1][0] == '-'){
@@ -85,7 +79,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Comunication init */
-	if (comm_init(conf, &comm)){
+	if (comm_init(conf)){
 		
 		fprintf(stderr, "Communication init failed!");
 		goto out;
@@ -121,22 +115,23 @@ int main(int argc, char **argv)
 					continue;
 
 				/* name */
-				bcopy(watch_list[i].name, msg.name, strlen(watch_list[i].name));	
+				comm_set_msg_name(&msg, watch_list[i].name);
 
 				/* path */
 				if (watch_list[i].is_dir){
-					bcopy(event->name, msg.path, strlen(event->name));
+
+					comm_set_msg_path(&msg, event->name);
+					comm_set_msg_dir(&msg, watch_list[i].path, event->name);
 				}
 				else{
 
-					tmp = basename(watch_list[i].path);
-					bcopy(tmp, msg.path,  strlen(tmp));
+					comm_set_msg_path(&msg, basename(watch_list[i].path));
 				}
 			
-				/* Idx */
+				/* Watch idx */
 				msg.idx = i;
 
-				/* special file  */
+				/* Check special file  */
 				for (j = 0; watch_list[i].is_dir && watch_list[i].spc_name_cnt && j < MAX_SPC_FILE; j++){
 
 					if (strlen(watch_list[i].spc_name[j]) == strlen(event->name)  &&   !bcmp(watch_list[i].spc_name[j], event->name, strlen(event->name))){
@@ -150,25 +145,22 @@ int main(int argc, char **argv)
 				if (event->mask & IN_CREATE){
 					
 					msg.events	=	ADD_MASK;
-					comm_send_msg(&comm, &msg);	
-					continue;
 				}	
 
 				/* del */
 				if (event->mask & IN_DELETE){
 
 					msg.events	=	DEL_MASK;
-					comm_send_msg(&comm, &msg);	
-					continue;
-
 				}
 	
 				/* mod */
 				if ((event->mask  & IN_CLOSE_WRITE)  || (event->mask & IN_ATTRIB) ){
 
 					msg.events	=	MOD_MASK;
-					comm_send_msg(&comm, &msg);	
 				}
+
+				/* Send msg to remote or logger it */
+				comm_send_msg(&msg);
 
 			} /* end of for */
 
@@ -195,9 +187,5 @@ int main(int argc, char **argv)
 	}
 	return 0;
 }
-
-
-
-
 
 

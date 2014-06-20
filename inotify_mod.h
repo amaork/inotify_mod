@@ -16,7 +16,6 @@
 #define	DEF_ADDR	"127.0.0.1"
 #define	DEF_CONF_FILE	"./inotify_mod.ini"
 
-
 #define	PATH_KEY	"path"
 #define IGNORE_KEY	"ignore"
 #define	EVENTS_KEY	"events"
@@ -48,26 +47,6 @@ typedef	struct{
 	#define IS_DEL_SET(x)	((x) & DEL_MASK)
 	#define IS_MOD_SET(x)	((x) & MOD_MASK)
 }WATCH_INFO, *P_WATCH_INFO;
-
-
-/* Inotify module communication init data structure, send message to outside used too */
-typedef	struct{
-	
-	int socket;						/*	Communication socket fd */
-	struct sockaddr_in addr;		/*	Cache target address */
-	unsigned int is_ascii;			/*	Message data format, if it set using ascii format  */
-}COMM_INFO, *P_COMM_INFO;
-
-
-/* Watch event message binary data structure */
-typedef	struct{
-	
-	char name[32];					/*	Watch name (ini section name )*/
-	char path[32];					/*	File name */
-	unsigned int idx;				/*	Conf index */
-	unsigned int events;			/*	Which event has happend */
-	unsigned char spc[MAX_SPC_FILE];/* 	Special file has add or remove */
-}MSG_INFO, *P_MSG_INFO;
 
 
 extern char *conf_file_path;	

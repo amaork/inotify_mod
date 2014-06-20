@@ -19,8 +19,10 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 	unsigned int idx, i, j;
 
 	/* Debug print all conf */
-	if (debug)
+	if (debug){
+
 		iniparser_dump(conf, stderr);
+	}
 		
 
 	/* Get section name's */
