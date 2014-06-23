@@ -155,25 +155,16 @@ inline void comm_set_msg_path(P_MSG_INFO msg, char *path)
 	bcopy(path, msg->path, strlen(path));
 }
 
-inline void comm_set_msg_dir(P_MSG_INFO msg, char *path, char *name)
+inline void comm_set_msg_dir(P_MSG_INFO msg, unsigned int mask)
 {
-	struct stat st;
-	char full_path[256];
-	bzero(full_path, sizeof(full_path));
+	/* Check if is dir */
+	if (mask & IN_ISDIR){
 
-	/* Get full path */
-	snprintf(full_path, sizeof(full_path), "%s/%s", path, name);
-
-	/* Clear is_dir flag */
-	msg->is_dir = 0;
-
-	/* Get file stat */
-	if (stat(full_path, &st)){
-
-		return;
+		msg->is_dir = 1;
 	}
-
-	/* Check if it's an dir */
-	msg->is_dir = S_ISDIR(st.st_mode);	
+	else{
+		
+		msg->is_dir = 0;
+	}
 }
 

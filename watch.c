@@ -31,14 +31,29 @@ int watch_init(P_WATCH_INFO watch_list, unsigned int size)
 			continue;		
 
 		/* Get watch event and set watch mask */
-		if (IS_ADD_SET(watch_list[i].events))
+		if (watch_list[i].is_dir && IS_ADD_SET(watch_list[i].events)){
+
 			watch_mask 	|=	IN_CREATE;
+		}
 
-		if (IS_DEL_SET(watch_list[i].events))
-			watch_mask	|=	IN_DELETE;
+		if (IS_DEL_SET(watch_list[i].events)){
 
-		if (IS_MOD_SET(watch_list[i].events))
-			watch_mask	|=	IN_CLOSE_WRITE | IN_ATTRIB;
+			/* Dir */
+			if (watch_list[i].is_dir){
+
+				watch_mask	|=	IN_DELETE;
+			}
+			/* File */
+			else{
+
+				watch_mask  |=	IN_DELETE_SELF;
+			}
+		}
+
+		if (IS_MOD_SET(watch_list[i].events)){
+
+			watch_mask	|=	IN_CLOSE_WRITE;
+		}
 
 
 		/* Add to inotify watch */	

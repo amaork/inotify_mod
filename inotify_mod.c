@@ -117,11 +117,13 @@ int main(int argc, char **argv)
 				/* name */
 				comm_set_msg_name(&msg, watch_list[i].name);
 
+				/* Check if is dir */
+				comm_set_msg_dir(&msg, event->mask);
+
 				/* path */
 				if (watch_list[i].is_dir){
 
 					comm_set_msg_path(&msg, event->name);
-					comm_set_msg_dir(&msg, watch_list[i].path, event->name);
 				}
 				else{
 
@@ -148,19 +150,22 @@ int main(int argc, char **argv)
 				}	
 
 				/* del */
-				if (event->mask & IN_DELETE){
+				if ((event->mask & IN_DELETE) || (event->mask & IN_DELETE_SELF)){
 
 					msg.events	=	DEL_MASK;
 				}
 	
 				/* mod */
-				if ((event->mask  & IN_CLOSE_WRITE)  || (event->mask & IN_ATTRIB) ){
+				if ((event->mask  & IN_CLOSE_WRITE)){
 
 					msg.events	=	MOD_MASK;
 				}
 
 				/* Send msg to remote or logger it */
-				comm_send_msg(&msg);
+				if (msg.events){
+
+					comm_send_msg(&msg);
+				}
 
 			} /* end of for */
 

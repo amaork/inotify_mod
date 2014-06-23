@@ -30,7 +30,7 @@ int comm_init(dictionary *conf);
 /* Set MSG_INFO field */
 inline void comm_set_msg_name(P_MSG_INFO msg, char *name);
 inline void comm_set_msg_path(P_MSG_INFO msg, char *path);
-inline void comm_set_msg_dir(P_MSG_INFO msg, char *path, char *name);
+inline void comm_set_msg_dir(P_MSG_INFO msg, unsigned int mask);
 
 /* Send events message */
 int comm_send_msg(P_MSG_INFO msg);
