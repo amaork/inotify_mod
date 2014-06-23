@@ -126,6 +126,18 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 									watch[i].events	|=	MOD_MASK;
 									j += 2;	
 								}break;
+				
+				case	'r'	:	if (cp[j + 1] == 'e' && cp[j + 2] == 'a' && cp[j + 3] == 'd'){
+
+									watch[i].events	|=	READ_MASK;
+									j += 3;
+								}break;
+
+				case	's'	:	if (cp[j + 1] == 'd' && cp[j + 2] == 'e' && cp[j +3] == 'l'){
+
+									watch[i].events	|=	SDEL_MASK;
+									j += 3;
+								}break;
 
 			} /* end of switch */
 	

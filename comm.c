@@ -97,6 +97,14 @@ int comm_send_msg(P_MSG_INFO msg)
 
 		event_name = MOD_EVENT;
 	}
+	else if (IS_READ_SET(msg->events)){
+		
+		event_name	= READ_EVENT;
+	}	
+	else if (IS_SDEL_SET(msg->events)){
+		
+		event_name	= SDEL_EVENT;
+	}
 
 	/* Format ascii message */	
 	snprintf(msg_buf, sizeof(msg_buf), "%d:%s:%s:%d%d%d%d%d%d%d%d:%s:%d\r\n", \

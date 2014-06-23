@@ -150,16 +150,37 @@ int main(int argc, char **argv)
 				}	
 
 				/* del */
-				if ((event->mask & IN_DELETE) || (event->mask & IN_DELETE_SELF)){
+				if (event->mask & IN_DELETE){
 
 					msg.events	=	DEL_MASK;
 				}
-	
+
 				/* mod */
 				if ((event->mask  & IN_CLOSE_WRITE)){
 
 					msg.events	=	MOD_MASK;
 				}
+
+				/* read */
+				if (event->mask & IN_ACCESS){
+
+					msg.events	=	READ_MASK;
+				}
+
+				/* file self delete */
+				if (event->mask & IN_DELETE_SELF){
+
+					msg.events	=	SDEL_MASK;
+				}
+
+				/* dir self delete */
+				if (watch_list[i].is_dir && IS_SDEL_SET(watch_list[i].events) && (event->mask & IN_IGNORED)){
+
+					msg.events	=	SDEL_MASK;
+					comm_set_msg_dir(&msg, IN_ISDIR);
+					comm_set_msg_path(&msg, basename(watch_list[i].path));
+				}
+
 
 				/* Send msg to remote or logger it */
 				if (msg.events){

@@ -40,12 +40,18 @@ typedef	struct{
 	#define	ADD_EVENT	"add"
 	#define	DEL_EVENT	"del"
 	#define	MOD_EVENT	"mod"
+	#define READ_EVENT	"read"
+	#define SDEL_EVENT	"sdel"
 	#define ADD_MASK	(1 << 0)
 	#define DEL_MASK	(1 << 1)
 	#define MOD_MASK	(1 << 2)
+	#define READ_MASK	(1 << 3)
+	#define SDEL_MASK	(1 << 4)
 	#define IS_ADD_SET(x)	((x) & ADD_MASK)
 	#define IS_DEL_SET(x)	((x) & DEL_MASK)
 	#define IS_MOD_SET(x)	((x) & MOD_MASK)
+	#define IS_READ_SET(x)	((x) & READ_MASK)
+	#define IS_SDEL_SET(x)	((x) & SDEL_MASK)
 }WATCH_INFO, *P_WATCH_INFO;
 
 
