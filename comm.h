@@ -2,6 +2,7 @@
 #define _COMM_H_
 
 #include "inotify_mod.h"
+#include "watch.h"
 
 
 /* Inotify module communication init data structure, send message to outside user too */

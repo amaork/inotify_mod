@@ -15,6 +15,7 @@
 #include "comm.h"
 #include "help.h"
 #include "watch.h"
+#include "events.h"
 #include "configure.h"
 #include "inotify_mod.h"
 
@@ -27,6 +28,7 @@ char *conf_file_path =	DEF_CONF_FILE;
 int main(int argc, char **argv)
 {
 	int i, j;
+	int eidx;
 	MSG_INFO msg;
 	int watch_num;
 	int inotify_watch;
@@ -143,42 +145,23 @@ int main(int argc, char **argv)
 					}
 				}
 
-				/* add */
-				if (event->mask & IN_CREATE){
-					
-					msg.events	=	ADD_MASK;
-				}	
+				/* Check which events is happend */
+				for (eidx = 0; support_events[eidx].name; eidx++){
 
-				/* del */
-				if (event->mask & IN_DELETE){
+					/* Events is match */
+					if (event->mask & support_events[eidx].imask){
 
-					msg.events	=	DEL_MASK;
-				}
+						msg.events	= support_events[eidx].mask;
+						break;
+					}
+					/* Dir self-delete events process */
+					else if (event->mask & IN_IGNORED && watch_list[i].is_dir && IS_SDEL_SET(watch_list[i].events)){
 
-				/* mod */
-				if ((event->mask  & IN_CLOSE_WRITE)){
-
-					msg.events	=	MOD_MASK;
-				}
-
-				/* read */
-				if (event->mask & IN_ACCESS){
-
-					msg.events	=	READ_MASK;
-				}
-
-				/* file self delete */
-				if (event->mask & IN_DELETE_SELF){
-
-					msg.events	=	SDEL_MASK;
-				}
-
-				/* dir self delete */
-				if (watch_list[i].is_dir && IS_SDEL_SET(watch_list[i].events) && (event->mask & IN_IGNORED)){
-
-					msg.events	=	SDEL_MASK;
-					comm_set_msg_dir(&msg, IN_ISDIR);
-					comm_set_msg_path(&msg, basename(watch_list[i].path));
+						msg.events	=	SDEL_MASK;
+						comm_set_msg_dir(&msg, IN_ISDIR);
+						comm_set_msg_path(&msg, basename(watch_list[i].path));
+						break;
+					}
 				}
 
 

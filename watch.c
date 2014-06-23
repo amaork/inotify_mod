@@ -1,4 +1,5 @@
 #include "watch.h"
+#include "events.h"
 
 /*************************************************************************************************************
 **	@brief		:	Create a inotify instance then add watch_list path to the instace 

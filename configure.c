@@ -1,6 +1,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include "watch.h"
+#include "events.h"
 #include "configure.h"
 
 
@@ -16,7 +18,8 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 	char *cp;
 	char entry[32];
 	struct stat fattr;
-	unsigned int idx, i, j;
+	char events_name_str[128];
+	unsigned int idx, i, j, event_idx;
 
 	/* Debug print all conf */
 	if (debug){
@@ -96,54 +99,6 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 
 		} /* end of if */
 
-
-		/* events */
-		bzero(entry, sizeof(entry));
-		snprintf(entry, sizeof(entry), "%s:%s", watch[i].name, EVENTS_KEY);
-		
-		cp	=	iniparser_getstring(conf, entry, "");
-
-		/* Parser events */
-		for (j = 0; strlen(cp) && cp[0] == '[' &&  cp[j] != ']'; j++){
-
-			switch (cp[j]){
-
-				case	'a'	:	if (cp[j + 1] == 'd' && cp[j + 2] == 'd'){
-												
-									watch[i].events |= 	ADD_MASK;
-									j += 2;	
-								}break;
-
-				case	'd'	:	if (cp[j + 1] == 'e' && cp[j + 2] == 'l'){
-										
-									watch[i].events	|=	DEL_MASK;
-
-									j += 2;	
-								}break;
-
-				case	'm'	:	if (cp[j + 1] == 'o' && cp[j + 2] == 'd'){
-
-									watch[i].events	|=	MOD_MASK;
-									j += 2;	
-								}break;
-				
-				case	'r'	:	if (cp[j + 1] == 'e' && cp[j + 2] == 'a' && cp[j + 3] == 'd'){
-
-									watch[i].events	|=	READ_MASK;
-									j += 3;
-								}break;
-
-				case	's'	:	if (cp[j + 1] == 'd' && cp[j + 2] == 'e' && cp[j +3] == 'l'){
-
-									watch[i].events	|=	SDEL_MASK;
-									j += 3;
-								}break;
-
-			} /* end of switch */
-	
-		} /* end of for */
-
-
 		/* Check if path is dir set is_dir mark */
 		bzero(&fattr, sizeof(fattr));		
 
@@ -160,10 +115,46 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 			}
 		}
 
+
+		/* events */
+		bzero(entry, sizeof(entry));
+		snprintf(entry, sizeof(entry), "%s:%s", watch[i].name, EVENTS_KEY);
+		
+		cp	=	iniparser_getstring(conf, entry, "");
+
+		/* Parser events */
+		for (j = 0; strlen(cp) && cp[0] == '[' &&  cp[j] != ']'; j++){
+
+			/* Check which event it want watch */	
+			for (event_idx = 0; support_events[event_idx].name; event_idx++){
+
+				/* Current watch is a file */
+				if (!ev_is_support_event(watch[i].is_dir, support_events[event_idx].mask)){
+
+					continue;
+				}
+			
+				/* Check if it's support events */
+				if (bcmp(cp + j, support_events[event_idx].name, strlen(support_events[event_idx].name)) == 0){
+
+					/* Move to last name character  */
+					j += strlen(support_events[event_idx].name) - 1;
+
+					/* Make sure is full match test */
+					if (cp[j + 1] == ' ' || cp[j + 1] == '\t' || cp[j + 1] == ',' || cp[j + 1] == ']'){
+
+						watch[i].events	|=	support_events[event_idx].mask;
+						break;
+					}
+				}
+			}
+	
+		} /* end of for */
+
 		/* Debug */
 		if (debug){
-			fprintf(stderr, "\n[%s]\npath\t=\t%s\ndir\t=\t%s\nignore\t=\t%s\nevents\t=\t%s[%d]\ncomment\t=\t%s\n", \
-					watch[i].name,  watch[i].path, watch[i].is_dir ? "yes" : "no", watch[i].ignore ? "yes" : "no", cp,  watch[i].events, watch[i].comment);	
+			fprintf(stderr, "\n[%s]\npath\t=\t%s\ndir\t=\t%s\nignore\t=\t%s\n", watch[i].name,  watch[i].path, watch[i].is_dir ? "yes" : "no", watch[i].ignore ? "yes" : "no");	
+			fprintf(stderr, "events\t=\t[%s][%x]\ncomment\t=\t%s\n", ev_get_events_str(watch[i].events, events_name_str, sizeof(events_name_str)), watch[i].events, watch[i].comment);
 
 	
 			/* Print special file info */		

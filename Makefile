@@ -32,6 +32,6 @@ libiniparser.a:	$(OBJS)
 inotify_mod:
 	$(CPP) $(CPPFLAGS)	-o $@ $^ $(LDFLAGS) 
 
-inotify_mod: inotify_mod.o comm.o configure.o watch.o help.o 
+inotify_mod: inotify_mod.o comm.o configure.o watch.o help.o events.o 
 
 -include depend

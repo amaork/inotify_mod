@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "comm.h"
+#include "events.h"
 #include "socket/socket_cwrap.h"
 
 static COMM_INFO comm_info;
@@ -78,32 +79,20 @@ int comm_init(dictionary *conf)
 *************************************************************************************************************/
 int comm_send_msg(P_MSG_INFO msg)
 {
-	int len;
+	int len, idx;
 	char msg_buf[128];
 	char *event_name;
 	bzero(msg_buf, sizeof(msg_buf));	
 
 
 	/* Convert event name */
-	if (IS_ADD_SET(msg->events)){
-		
-		event_name = ADD_EVENT;	
-	}
-	else if (IS_DEL_SET(msg->events)){
+	for (idx = 0; support_events[idx].name; idx++){
 
-		event_name = DEL_EVENT;
-	}
-	else if (IS_MOD_SET(msg->events)){
+		if (msg->events & support_events[idx].mask){
 
-		event_name = MOD_EVENT;
-	}
-	else if (IS_READ_SET(msg->events)){
-		
-		event_name	= READ_EVENT;
-	}	
-	else if (IS_SDEL_SET(msg->events)){
-		
-		event_name	= SDEL_EVENT;
+			event_name = support_events[idx].name;
+			break;
+		}
 	}
 
 	/* Format ascii message */	
