@@ -1,7 +1,8 @@
 #include "events.h"
 
-WT_EVENT support_events[] = {
+const WT_EVENT support_events[] = {
 
+	{ALL_EVENT,		ALL_MASK,	0},
 	{ADD_EVENT,		ADD_MASK,	I_ADD_MASK},
 	{DEL_EVENT,		DEL_MASK,	I_DEL_MASK},
 
@@ -48,6 +49,12 @@ char *ev_get_events_str(unsigned int events, char *buf, int size)
 *************************************************************************************************************/
 inline int ev_is_support_event(unsigned int is_dir, unsigned int  event)
 {
+	/* All events ? */
+	if (IS_ALL_SET(event)){
+		
+		return 1;
+	}
+
 	/* Dir */
 	if (is_dir){
 

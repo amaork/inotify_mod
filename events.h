@@ -3,6 +3,7 @@
 
 #include "inotify_mod.h"
 
+#define ALL_EVENT	"all"
 #define	ADD_EVENT	"add"
 #define	DEL_EVENT	"del"
 #define	MOD_EVENT	"mod"
@@ -14,10 +15,11 @@
 #define MOD_MASK	(1 << 2)
 #define READ_MASK	(1 << 3)
 #define SDEL_MASK	(1 << 4)
+#define ALL_MASK	(1 << 31)
 
 /* File and dir support events mask */
-#define FILE_SUPPORT_MASK	(MOD_MASK | READ_MASK | SDEL_MASK)
-#define DIR_SUPPORT_MASK	(ADD_MASK | DEL_MASK | MOD_MASK | SDEL_MASK)
+#define FILE_SUPPORT_EVENTS	(MOD_MASK | READ_MASK | SDEL_MASK)
+#define DIR_SUPPORT_EVENTS	(ADD_MASK | DEL_MASK | MOD_MASK | SDEL_MASK)
 
 #define I_ADD_MASK	IN_CREATE
 #define I_DEL_MASK	IN_DELETE
@@ -31,10 +33,11 @@
 #define IS_MOD_SET(x)	((x) & MOD_MASK)
 #define IS_READ_SET(x)	((x) & READ_MASK)
 #define IS_SDEL_SET(x)	((x) & SDEL_MASK)
+#define IS_ALL_SET(x)	((x) & ALL_MASK)
 
 /* Check if support this events */
-#define IS_DIR_SUPPORT(x)		((x) & (DIR_SUPPORT_MASK))
-#define IS_FILE_SUPPORT(x)		((x) & (FILE_SUPPORT_MASK))
+#define IS_DIR_SUPPORT(x)		((x) & (DIR_SUPPORT_EVENTS))
+#define IS_FILE_SUPPORT(x)		((x) & (FILE_SUPPORT_EVENTS))
 
 
 
@@ -46,7 +49,7 @@ typedef	struct{
 }WT_EVENT, *P_WT_EVENT;
 
 
-extern WT_EVENT support_events[];
+extern const WT_EVENT support_events[];
 
 
 char *ev_get_events_str(unsigned int events, char *buf, int size);

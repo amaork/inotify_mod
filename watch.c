@@ -31,12 +31,19 @@ int watch_init(P_WATCH_INFO watch_list, unsigned int size)
 		if (watch_list[i].ignore)
 			continue;		
 
+		/* Make sure there's have some events */
+		if (watch_list[i].events == 0){
+
+			fprintf(stderr, "Watch[%s:%s] do not have valid events, won't add to watching list!\n", watch_list[i].name, watch_list[i].path);
+			continue;
+		}
+
 		/* Get watch event and set watch mask */
 
 		#if 1
 
 		/* Add event, only support dir */
-		if (watch_list[i].is_dir && IS_ADD_SET(watch_list[i].events)){
+		if (IS_ADD_SET(watch_list[i].events)){
 
 			watch_mask 	|=	IN_CREATE;
 		}
@@ -63,7 +70,7 @@ int watch_init(P_WATCH_INFO watch_list, unsigned int size)
 		}
 
 		/* Read event */
-		if (!watch_list[i].is_dir && IS_READ_SET(watch_list[i].events)){
+		if (IS_READ_SET(watch_list[i].events)){
 
 
 			watch_mask	|=	IN_ACCESS;
@@ -99,6 +106,4 @@ int watch_init(P_WATCH_INFO watch_list, unsigned int size)
 	/* Return inotify instance fd */
 	return watch_fd;
 }
-
-
 

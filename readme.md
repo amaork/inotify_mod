@@ -21,12 +21,14 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 - del:	Delete subfile or subdirectory in watched directory
 - mod:	Equal to add | del events
 - sdel:	Watching directory was deleted
+- all:	All above events
 
 #### File events
 
 - mod:	File for write was closed
 - read:	File for read was closed
 - sdel:	Watching file was deleted
+- all:	All above events
 
 ## System request
 

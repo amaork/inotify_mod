@@ -44,7 +44,6 @@ int main(int argc, char **argv)
 		print_help(argc, argv);		
 	}
 
-
 	/* Load ini file first */		
 	if ((conf = iniparser_load(conf_file_path)) == NULL){
 		
@@ -67,9 +66,9 @@ int main(int argc, char **argv)
 	}
 
 	/* Parser watch configure */
-	if (conf_init(conf, watch_list, watch_num) != watch_num){
+	if ((watch_num = conf_init(conf, watch_list, watch_num)) <= 0){
 
-		fprintf(stderr, "Parser watch configure error!\n");
+		fprintf(stderr, "There's no invalid watch in watching list, exit!\n");
 		goto out;
 	}
 
