@@ -40,6 +40,7 @@
 #define IS_FILE_SUPPORT(x)		((x) & (FILE_SUPPORT_EVENTS))
 
 
+#define MAX_EVENT_SIZE	12
 
 typedef	struct{
 

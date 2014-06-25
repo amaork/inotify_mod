@@ -135,9 +135,9 @@ int main(int argc, char **argv)
 				msg.idx = i;
 
 				/* Check special file  */
-				for (j = 0; watch_list[i].is_dir && watch_list[i].spc_name_cnt && j < MAX_SPC_FILE; j++){
+				for (j = 0; watch_list[i].is_dir && watch_list[i].spc_file_cnt && j < MAX_SPC_FILE; j++){
 
-					if (strlen(watch_list[i].spc_name[j]) == strlen(event->name)  &&   !bcmp(watch_list[i].spc_name[j], event->name, strlen(event->name))){
+					if (strlen(watch_list[i].spc_file[j]) == strlen(event->name)  &&   !bcmp(watch_list[i].spc_file[j], event->name, strlen(event->name))){
 
 						msg.spc[j] = 1;
 						break;

@@ -52,12 +52,19 @@ static int conf_arrange_watch(P_WATCH_INFO wlist, unsigned int size)
 *************************************************************************************************************/
 static unsigned int conf_parser_events(const char* events_str, unsigned int is_dir)
 {
-	int i; 
+	int i, event_size; 
 	const WT_EVENT *s_event;
 	unsigned int events = 0;
+	char event_name[MAX_EVENT_SIZE][32];
 
-	/* Parser events */
-	for (i = 0; strlen(events_str) && events_str[0] == '[' &&  events_str[i] != ']'; i++){
+	/* Get events name form events string */
+	bzero(event_name, sizeof(event_name));
+	event_size = conf_get_words(events_str, event_name, MAX_EVENT_SIZE);
+
+	/* Parser event name */
+	for (i = 0; i < event_size; i++){
+
+		//fprintf(stdout, "[%d]%s\n", i, event_name[i]);
 
 		/* Check which event it want watch */	
 		for (s_event = &support_events[0]; s_event->name; s_event++){
@@ -69,28 +76,20 @@ static unsigned int conf_parser_events(const char* events_str, unsigned int is_d
 			}
 			
 			/* Check if it's support events */
-			if (bcmp(events_str + i, s_event->name, strlen(s_event->name)) == 0){
+			if (bcmp(event_name[i], s_event->name, strlen(event_name[i])) == 0){
 
-				/* Move to last name character  */
-				i += strlen(s_event->name) - 1;
+				/* All events */
+				if (IS_ALL_SET(s_event->mask)){
 
-				/* Make sure is full match test */
-				if (IS_WORD_END(events_str[i + 1])){
-
-					/* All events */
-					if (IS_ALL_SET(s_event->mask)){
-
-						events |=	is_dir ? DIR_SUPPORT_EVENTS : FILE_SUPPORT_EVENTS;
-						break;
-					}
-					/* Single events */
-					else{
-
-						events	|=	s_event->mask;
-						break;
-					}
+					events |=	is_dir ? DIR_SUPPORT_EVENTS : FILE_SUPPORT_EVENTS;
+					break;
 				}
+				/* Single events */
+				else{
 
+					events	|=	s_event->mask;
+					break;
+				}
 			}
 
 		} /* end of for s_event */
@@ -98,6 +97,77 @@ static unsigned int conf_parser_events(const char* events_str, unsigned int is_d
 	} /* end of for i */
 
 	return events;
+}
+
+
+/*************************************************************************************************************
+**	@brief	:	parser word form cp and save it to #words
+**	#cp		:	will parser string pointer
+**	#words	:	save words
+**	#size	:	words array size
+**	@return	:	return words size in cp 
+*************************************************************************************************************/
+int conf_get_words(const char *cp, char (*words)[32], unsigned int size)
+{
+	unsigned int i, j, idx, start, end;
+	unsigned int str_size = strlen(cp);
+
+	/* Nothing */
+	if (str_size == 0){
+	
+		return 0;
+	}
+
+	/* String trip */
+	for (i = 0; i < str_size; i++){
+
+		if (!IS_WORD_END(cp[i])){
+
+			start = i;
+			break;
+		}
+	}
+
+	for (i = str_size - 1;  i > start; i--){
+
+		if (!IS_WORD_END(cp[i])){
+
+			end = i;
+			break;
+		}
+	}
+	
+	#if 0
+	fprintf(stderr, "[%u]%s\n", str_size, cp);
+	fprintf(stderr, "%u[%c]-%u[%c]\n", start, cp[start], end, cp[end]);
+	#endif
+
+	/* Parser string */	
+	for (i = start, j = 0, idx = 0; i <= end && j < 32 && idx < size; i++){
+
+		switch (cp[i]){
+			
+			/* Words end */
+			case	' '	:
+			case	','	:	
+			case	'\t':
+			case	'\n':	if (!IS_WORD_END(cp[i + 1])){
+								
+								/* Restart */
+								j = 0;
+								/* Move to next word */
+								idx++;
+							}break;
+
+			/* Words */
+			default		:	words[idx][j++]	= cp[i];	
+							break;
+
+		} /* end of switch */
+
+	} /* end of for */
+
+	return idx + 1;
 }
 
 /*************************************************************************************************************
@@ -153,11 +223,11 @@ void conf_print_watch(const P_WATCH_INFO watch)
 
 	
 	/* Print special file info */		
-	if (watch->spc_name_cnt){
+	if (watch->spc_file_cnt){
 
-		for (i = 0; i <= watch->spc_name_cnt; i++){
+		for (i = 0; i < watch->spc_file_cnt; i++){
 
-				fprintf(stdout, "spe[%d]\t=\t%s\n", i, watch->spc_name[i]);
+				fprintf(stdout, "spe[%d]\t=\t%s\n", i, watch->spc_file[i]);
 			}
 		}
 
@@ -176,7 +246,7 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 
 	char entry[64];
 	char *cp = NULL;
-	unsigned int idx, i, j;
+	unsigned int i;
 
 	#define GET_INT_ENTRY(v, d)		do { v = iniparser_getint(conf, entry, (d)); } while(0)
 	#define GET_BOOL_ENTRY(v, d)	do { v = iniparser_getboolean(conf, entry, (d)); } while(0)
@@ -227,33 +297,13 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 		if (watch[i].is_dir && iniparser_find_entry(conf, entry)){
 
 			/* Read form ini file */
-			cp  = iniparser_getstring(conf, entry, NULL);
+			if ((cp  = iniparser_getstring(conf, entry, NULL))){
+			
+				/* Get special file name */
+				watch[i].spc_file_cnt = conf_get_words(cp, watch[i].spc_file, MAX_SPC_FILE);
+			}
 
-			/* Parser special file */
-			for (j = 0, idx = 0, watch[i].spc_name_cnt = 0; strlen(cp) && cp[0] == '[' &&  cp[j] != ']' && watch[i].spc_name_cnt < MAX_SPC_FILE; j++){
-
-				switch (cp[j]){
-
-					case	'['	:	
-					case	']'	:	break;
-
-					case	' '	:
-					case	','	:
-					case	'\t':	if (cp[j+1] != ' ' && cp[j+1] != ',' && cp[j+1] != '\t'){
-								
-										idx = 0;
-										watch[i].spc_name_cnt ++;
-									}
-									break;
-
-					default		:	watch[i].spc_name[watch[i].spc_name_cnt][idx++] = cp[j];
-									break;
-	
-				} /* end of switch */
-
-			} /* end of for */
-
-		} /* end of if */
+		} 
 
 
 		/* events */
@@ -268,7 +318,6 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 
 			conf_print_watch(&watch[i]);
 		}
-
 	
 	} /* end for */
 

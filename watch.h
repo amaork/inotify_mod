@@ -14,8 +14,8 @@ typedef	struct{
 	unsigned int events;			/*	Watch events */
 	unsigned int is_dir;			/*	If it was a dir it will set */
 	#define MAX_SPC_FILE	8
-	char spc_name[MAX_SPC_FILE][32];/*	Special file name */
-	unsigned int spc_name_cnt;		/*	How man special file have set */
+	char spc_file[MAX_SPC_FILE][32];/*	Special file name */
+	unsigned int spc_file_cnt;		/*	How man special file have set */
 }WATCH_INFO, *P_WATCH_INFO;
 
 
