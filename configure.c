@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <libgen.h>
 #include "watch.h"
 #include "events.h"
 #include "configure.h"
@@ -50,7 +51,7 @@ static int conf_arrange_watch(P_WATCH_INFO wlist, unsigned int size)
 **	#is_dir		:	is watch file is a dir
 **	@return		:	return watch events mask 
 *************************************************************************************************************/
-static unsigned int conf_parser_events(const char* events_str, unsigned int is_dir)
+unsigned int conf_parser_events(const char* events_str, unsigned int is_dir)
 {
 	int i, event_size; 
 	const WT_EVENT *s_event;
@@ -171,9 +172,33 @@ int conf_get_words(const char *cp, char (*words)[32], unsigned int size)
 }
 
 /*************************************************************************************************************
+**	@brief	:	safe swarp dirname
+*************************************************************************************************************/
+char *conf_dirname(const char *path)
+{
+	static char buffer[256];
+	bzero(buffer, sizeof(buffer));
+	bcopy(path, buffer, strlen(path));
+
+	return dirname(buffer);
+}
+
+/*************************************************************************************************************
+**	@brief	:	safe swarp basename
+*************************************************************************************************************/
+char *conf_basename(const char *path)
+{
+	static char buffer[256];
+	bzero(buffer, sizeof(buffer));
+	bcopy(path, buffer, strlen(path));
+
+	return basename(buffer);
+}
+
+/*************************************************************************************************************
 **	@brief	:	check if path is a dir	
 **	#path	:	checking path
-**	@return	:	#path is a dir return 1, not dir return 0
+**	@return	:	#path is a dir return 1, not dir return 0, not exist return -1
 *************************************************************************************************************/
 int conf_is_path_is_dir(char *path)
 {
@@ -191,12 +216,12 @@ int conf_is_path_is_dir(char *path)
 		else{
 
 			return 0;
-			
 		}
 	}
 	else{
 
 		fprintf(stderr, "Get path[%s] stat failed:%s!\n", path, strerror(errno));
+		return -1;
 	}
 
 	return 0;
@@ -308,10 +333,10 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 
 		/* events */
 		FORMAT_ENTRY(watch[i].name, EVENTS_KEY);
-		cp	=	iniparser_getstring(conf, entry, "");
+		GET_STR_ENTRY(watch[i].events_str, "");
 
 		/* Parser events */
-		watch[i].events	=	conf_parser_events(cp, watch[i].is_dir);
+		watch[i].events	=	conf_parser_events(watch[i].events_str, watch[i].is_dir);
 
 		/* Debug */
 		if (debug){

@@ -22,6 +22,8 @@
 #define SPECIAL_KEY	"special"
 #define	COMMENT_KEY	"comment"
 
+#define MAX_SPC_FILE	8
+
 /* XXX:Data structure */
 extern char *conf_file_path;	
 

@@ -8,10 +8,11 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 
 ## Feature
 
-- Support : add, delete, modify event
+- Support : add, delete, modify, read event
 - Support watching multi files or directory
 - Using UDP message report watching events
 - Message data can be Ascii data or binary data
+- Support dynamic adding watching (When file/directory is created automatically added to watching list)
 
 ## Events
 
@@ -29,6 +30,10 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 - read:	File for read was closed
 - sdel:	Watching file was deleted
 - all:	All above events
+
+## Dynamic adding feature
+
+For instance we want watching "/tmp/test" path, but currently its not exist, in usual add an un exist path to inotify it will cause an error. Use dynamic adding feature it can detect '"/tmp/test" path is not exist, then automatically add "/tmp" dir ("/tmp/test" father dir)  to inotify and watching  it's add event. When "test" file  is created in "/tmp" dir, app will automatically  add "/tmp/test" to inotify replace watching it's father dir "/tmp".
 
 ## System request
 
@@ -64,8 +69,16 @@ make
 		special	=	[a,b,c,d,e,f,g,h]
 		comment	=	"System /tmp directory"
 
+	[TEST]
+
+		path	=	/tmp/test
+		events	=	[all]
+		comment	=	"Test"
+
 
 it means watching `/tmp` directory, when it has `add` or `self delete` events happened, it will send ASCII message to multicast group `224.0.0.15:8900`.  Especially when new added subfile or subdirectory name is `a b c d e f g h` , it will set the specially file mask in send message .
+
+
 
 
 ## What's next?

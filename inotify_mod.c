@@ -27,8 +27,7 @@ char *conf_file_path =	DEF_CONF_FILE;
 
 int main(int argc, char **argv)
 {
-	int i, j;
-	int eidx;
+	int i;
 	MSG_INFO msg;
 	int watch_num;
 	int inotify_watch;
@@ -90,83 +89,35 @@ int main(int argc, char **argv)
 	/* Wait events */
 	while(1){
 
+		offset = 0;
 
 		/* Clear events buf and msg data */
-		bzero(&msg, sizeof(msg));
 		bzero(events_buf, sizeof(events_buf));
 		
-
 		/* If there have some events occurs, will read data structure */
 		if ((r_size = read(inotify_watch, events_buf, sizeof(events_buf))) < 0) continue;
-
-		offset = 0;
 	
 		/* Get events */
 		event = (struct inotify_event *)events_buf;	
 
 		/* Process each of the event */
 		while(offset < r_size){
-
 			
 			/* Find which path has events occured */
 			for (i = 0; i < watch_num; i++){
 
-				/* Match ? */
-				if (event->wd != watch_list[i].fd)
+				bzero(&msg, sizeof(msg));
+
+				/* Dynamic add event check */
+				if (watch_dynamic_check(inotify_watch, &watch_list[i], event)){
+
 					continue;
-
-				/* name */
-				comm_set_msg_name(&msg, watch_list[i].name);
-
-				/* Check if is dir */
-				comm_set_msg_dir(&msg, event->mask);
-
-				/* path */
-				if (watch_list[i].is_dir){
-
-					comm_set_msg_path(&msg, event->name);
-				}
-				else{
-
-					comm_set_msg_path(&msg, basename(watch_list[i].path));
-				}
-			
-				/* Watch idx */
-				msg.idx = i;
-
-				/* Check special file  */
-				for (j = 0; watch_list[i].is_dir && watch_list[i].spc_file_cnt && j < MAX_SPC_FILE; j++){
-
-					if (strlen(watch_list[i].spc_file[j]) == strlen(event->name)  &&   !bcmp(watch_list[i].spc_file[j], event->name, strlen(event->name))){
-
-						msg.spc[j] = 1;
-						break;
-					}
 				}
 
-				/* Check which events is happend */
-				for (eidx = 0; support_events[eidx].name; eidx++){
+				/* Normal event check */
+				if (watch_event_check(&watch_list[i], event, &msg)){
 
-					/* Events is match */
-					if (event->mask & support_events[eidx].imask){
-
-						msg.events	= support_events[eidx].mask;
-						break;
-					}
-					/* Dir self-delete events process */
-					else if (event->mask & IN_IGNORED && watch_list[i].is_dir && IS_SDEL_SET(watch_list[i].events)){
-
-						msg.events	=	SDEL_MASK;
-						comm_set_msg_dir(&msg, IN_ISDIR);
-						comm_set_msg_path(&msg, basename(watch_list[i].path));
-						break;
-					}
-				}
-
-
-				/* Send msg to remote or logger it */
-				if (msg.events){
-
+					msg.idx	=	i;
 					comm_send_msg(&msg);
 				}
 
@@ -180,7 +131,6 @@ int main(int argc, char **argv)
 
 
 		} /* end of while */
-				
 
 	} /* end of while */
 
