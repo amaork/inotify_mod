@@ -4,6 +4,40 @@
 #include "events.h"
 #include "configure.h"
 
+#define MAX_WATCH_SIZE	256
+
+struct ref_count{
+
+	unsigned int size;
+	unsigned short cnt[MAX_WATCH_SIZE];
+};
+
+static struct ref_count dynamic_watch_ref = {.size = 0, .cnt = {0}};
+
+/*************************************************************************************************************
+**	dynamic watch get	
+*************************************************************************************************************/
+static void dynamic_watch_get(int fd)
+{
+	if (fd < MAX_WATCH_SIZE){
+	
+		dynamic_watch_ref.cnt[fd]++;
+	}
+}
+
+static unsigned int dynamic_watch_put(int fd)
+{
+	if (fd < MAX_WATCH_SIZE){
+
+		dynamic_watch_ref.cnt[fd]--;
+		return dynamic_watch_ref.cnt[fd];	
+	}
+
+	return 0;
+}
+
+
+
 /*************************************************************************************************************
 **	@brief	:	analytics  events and get watching mask
 **	#events	:	watching events
@@ -92,6 +126,7 @@ static int watch_dynamic_add(unsigned int watch_fd, P_WATCH_INFO watch)
 	/* Set this watch is dynamc watch */
 	watch->fd = dynamic_fd;
 	watch->dynamic_watch = 1;
+	dynamic_watch_get(dynamic_fd);
 
 	/* Return dynamic watch fd */
 	return dynamic_fd;
@@ -131,9 +166,16 @@ static int watch_dynamic_del(unsigned int watch_fd, P_WATCH_INFO watch)
 	}
 
 	/* Delete original file/dir father dir form inotify watch */
-	if (inotify_rm_watch(watch_fd, watch->fd) == -1){
+	if (dynamic_watch_put(watch->fd) == 0){
 
-		fprintf(stderr, "Delete dynamic watch[%s:%s] is failed, %s\n", watch->name, watch->path, strerror(errno));
+		if (inotify_rm_watch(watch_fd, watch->fd) == -1){
+
+			fprintf(stderr, "Delete dynamic watch[%s:%s] is failed, %s\n", watch->name, watch->path, strerror(errno));
+		}
+		else{
+	
+			fprintf(stdout, "Delete dynamic watch -> %d\n", watch->fd);		
+		}
 	}
 
 	/* Clear dyanic warch */

@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	
 
 	/* Wait events */
-	while(1){
+	while(watch_num){
 
 		offset = 0;
 
@@ -143,6 +143,7 @@ int main(int argc, char **argv)
 		free(watch_list);
 		watch_list = NULL;
 	}
+
 	return 0;
 }
 

@@ -9,7 +9,7 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 ## Feature
 
 - Support : add, delete, modify, read event
-- Support watching multi files or directory
+- Support watching multi files or directories
 - Using UDP message report watching events
 - Message data can be Ascii data or binary data
 - Support dynamic adding watching (When file/directory is created automatically added to watching list)

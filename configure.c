@@ -241,7 +241,7 @@ void conf_print_watch(const P_WATCH_INFO watch)
 	fprintf(stdout, "\n[%s]\n"
 					"path\t=\t%s\n"
 					"dir\t=\t%s\n"
-					"ignore\t=\t%s\n", watch->name,  watch->path, watch->is_dir ? "yes" : "no", watch->ignore ? "yes" : "no");	
+					"ignore\t=\t%s\n", watch->name,  watch->path, watch->is_dir == 1 ? "yes" : "no", watch->ignore ? "yes" : "no");	
 
 	fprintf(stdout, "events\t=\t[%s][%x]\n"
 					"comment\t=\t%s\n", ev_get_events_str(watch->events, events_name_str, sizeof(events_name_str)), watch->events, watch->comment);
