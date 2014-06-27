@@ -8,7 +8,7 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 
 ## Feature
 
-- Support : add, delete, modify, read event
+- Support : add, delete, modify, read, attribute change event
 - Support watching multi files or directories
 - Using UDP message report watching events
 - Message data can be Ascii data or binary data
@@ -22,6 +22,7 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 - del:	Delete subfile or subdirectory in watched directory
 - mod:	Equal to add | del events
 - sdel:	Watching directory was deleted
+- attr: Directory or it's subfile/subdirectory attribute is changed
 - all:	All above events
 
 #### File events
@@ -29,6 +30,7 @@ inotify_mod use to watch some specified file or directory, when the watching fil
 - mod:	File for write was closed
 - read:	File for read was closed
 - sdel:	Watching file was deleted
+- attr:	File attribute is changed
 - all:	All above events
 
 ## Dynamic adding feature

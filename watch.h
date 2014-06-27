@@ -20,6 +20,8 @@ typedef	struct{
 	char events_str[128];			/*	Events string, dynamic watch using */ 
 }WATCH_INFO, *P_WATCH_INFO;
 
+/* Remove watch from inotify watching list */
+int watch_remove(P_WATCH_INFO wlist, int size, int idx);
 
 /* Init a inotify instance, and add the file to the inotify instance */
 int watch_init(P_WATCH_INFO watch_list, unsigned int size);

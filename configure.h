@@ -15,8 +15,12 @@ int conf_is_path_is_dir(char *path);
 /* Print watch infomaction */
 void conf_print_watch(const P_WATCH_INFO watch);
 
+/* Arrange watch, remove unused watch form inotify  */
+int conf_arrange_watch(P_WATCH_INFO wlist, unsigned int size);
+
 /* Get words form cp string */
 int conf_get_words(const char *cp, char (*words)[32], unsigned int size);
+
 
 /* Parser events string get events */
 unsigned int conf_parser_events(const char* events_str, unsigned int is_dir);

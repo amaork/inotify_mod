@@ -12,7 +12,7 @@
 **	#size	:	Watching list size
 **	@return	:	return valid watch size in watching list
 *************************************************************************************************************/
-static int conf_arrange_watch(P_WATCH_INFO wlist, unsigned int size)
+int conf_arrange_watch(P_WATCH_INFO wlist, unsigned int size)
 {
 	unsigned int i, j, k, vsize;
 
@@ -306,14 +306,14 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 
 		/* Path */
 		FORMAT_ENTRY(watch[i].name, PATH_KEY);
-		GET_STR_ENTRY(watch[i].path, NULL);
+		GET_STR_ENTRY(watch[i].path, "");
 
 		/* Check if path is dir set is_dir mark */
 		watch[i].is_dir = conf_is_path_is_dir(watch[i].path);
 
 		/* Comment */
 		FORMAT_ENTRY(watch[i].name, COMMENT_KEY);
-		GET_STR_ENTRY(watch[i].comment, NULL);
+		GET_STR_ENTRY(watch[i].comment, "");
 
 		/* Find if setting special file */
 		FORMAT_ENTRY(watch[i].name, SPECIAL_KEY);
@@ -322,7 +322,7 @@ int conf_init(dictionary *conf, P_WATCH_INFO watch, const unsigned int size)
 		if (watch[i].is_dir && iniparser_find_entry(conf, entry)){
 
 			/* Read form ini file */
-			if ((cp  = iniparser_getstring(conf, entry, NULL))){
+			if ((cp  = iniparser_getstring(conf, entry, ""))){
 			
 				/* Get special file name */
 				watch[i].spc_file_cnt = conf_get_words(cp, watch[i].spc_file, MAX_SPC_FILE);

@@ -92,7 +92,12 @@ static unsigned int watch_get_mask(unsigned int events, unsigned int is_dir)
 			watch_mask	|=	IN_DELETE_SELF;
 		}
 	}
+	
+	/* Attr */
+	if (IS_ATTR_SET(events)){
 
+		watch_mask	|=	IN_ATTRIB;
+	}
 
 	return watch_mask;
 }
@@ -313,6 +318,12 @@ int watch_event_check(const P_WATCH_INFO watch, struct inotify_event *event, P_M
 		}
 	}
 
+	/* Self-delete events */
+	if (event->mask & IN_IGNORED){
+
+		watch->fd = -1;
+	}
+
 	return msg->events;
 }
 
@@ -354,6 +365,29 @@ int watch_dynamic_check(int watch_fd, const P_WATCH_INFO watch, struct inotify_e
 	}
 
 	return 1;
+}
+
+/*************************************************************************************************************
+**	@breif	:	remove specified watch form inotify 
+**	#wlist	:	inotify watch list
+**	#wsize	:	current watch size in #wlist
+**	#ridx	:	which watch want remove 
+**	@return	:	return after remove watch size in #wlist
+*************************************************************************************************************/
+int watch_remove(P_WATCH_INFO wlist, int size, int idx)
+{
+	/* Make sure idx is valid */	
+	if (idx >= size){
+
+		return size;
+	}
+
+	fprintf (stdout, "File[%s:%s] is deleted, remove watch from inotify!!!\n", wlist[idx].name, wlist[idx].path);
+
+	/* Remove */
+	wlist[idx].events = 0;
+
+	return conf_arrange_watch(wlist, size);
 }
 
 

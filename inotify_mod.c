@@ -84,10 +84,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Communication init failed!");
 		goto out;
 	}
-	
 
 	/* Wait events */
-	while(watch_num){
+	while(watch_num > 0){
 
 		offset = 0;
 
@@ -119,16 +118,21 @@ int main(int argc, char **argv)
 
 					msg.idx	=	i;
 					comm_send_msg(&msg);
+					
+				}
+
+				/* Self-delete event */
+				if (watch_list[i].fd == -1){
+
+					/* Remove watch */
+					watch_num = watch_remove(watch_list, watch_num, i);
 				}
 
 			} /* end of for */
 
-			
 			/* Move to next */
 			offset	+=	sizeof(struct inotify_event) + event->len;	
-
 			event 	= (struct inotify_event *)(events_buf + offset);
-
 
 		} /* end of while */
 

@@ -10,6 +10,7 @@ const WT_EVENT support_events[] = {
 	
 	{READ_EVENT,	READ_MASK,	I_READ_MASK},
 	{SDEL_EVENT,	SDEL_MASK,	I_SDEL_MASK},	
+	{ATTR_EVENT,	ATTR_MASK,	I_ATTR_MASK},
 	{0},
 };
 
